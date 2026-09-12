@@ -1,0 +1,6 @@
+.vault
+*.vault
+mt_entities.json
+__pycache__/
+*.session
+.env
