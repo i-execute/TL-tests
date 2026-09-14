@@ -3,6 +3,17 @@
 Живые тесты rich-сообщений через MTProto-транспорт GoyGram на сырых TL-конструкторах.
 Layer 229, Rust-сериализатор `goygram.ext` (wheel из PyPI, goygram ≥ 0.7.79).
 
+## Кнопки — три механизма (2026-09-14, проверено живьём)
+
+`tests/buttons_all3_test.py` шлёт 3 сообщения — все виды кнопок + премиум-эмодзи.
+Справочник: `buttons_skill.md` (срез того же скилла `telegram-buttons-mtproto`).
+
+| Механизм | Где рендерится | Премиум-эмодзи |
+|---|---|---|
+| keyboard (`keyboardInlineButton`) | под сообщением | `keyboardButtonStyle.icon` |
+| page (`pageButton`) | кнопка-блок rich | `textCustomEmoji` |
+| text (`textButton`) | внутри текста rich | `textCustomEmoji` |
+
 ## Ключевая идея
 
 Rich-сообщение на MTProto — это **не HTML, а TL-конструкторы**:

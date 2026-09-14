@@ -4,6 +4,7 @@
 TL-tests эталон. Без конкретного проекта — общие кнопки и эмодзи."""
 import asyncio
 import json
+import os
 import re
 import secrets
 import time
@@ -17,9 +18,9 @@ import goygram.ext as rx
 init_schema(rx)
 
 SESSION = "tltests_mtbot"
-ENV_PATH = "/home/forget/Arena/.env"
-ENT = Path("/home/forget/TL-tests/GoyGram/mt_entities.json")
-USER_ID = 7610246474
+ENV_PATH = "/home/forget/Arena/.env"  # TELEGRAM_API_ID / TELEGRAM_API_HASH
+ENT = Path("mt_entities.json")
+USER_ID = 7610246474  # target user; entities loaded from mt_entities.json
 
 EMOJI = {
     "pill": 5463081281048818043,     # 💊
@@ -50,18 +51,13 @@ def concat(parts):
     return ser("textConcat", {"texts": parts})
 
 
-def kb_btn(label, data, style=None, icon=None):
-    """keyboardInlineButton: text:string ПЛЕЙН (RichText нельзя),
-    премиум-эмодзи — через keyboardButtonStyle.icon = document_id."""
-    body = {"_": "keyboardInlineButton", "text": label,
+def kb_btn(label, data, style=None, icon=None):  # keyboard: ПОД сообщением
+    body = {"_": "keyboardInlineButton", "text": label,  # ПЛЕЙН, НЕ RichText
             "type": ser("inlineButtonTypeCallback", {"data": data.encode().hex()})}
     st = {}
-    if style:
-        st[style] = True
-    if icon:
-        st["icon"] = EMOJI[icon]
-    if st:
-        body["style"] = ser("keyboardButtonStyle", st)
+    if style: st[style] = True
+    if icon: st["icon"] = EMOJI[icon]  # премиум-эмодзи ТОЛЬКО здесь
+    if st: body["style"] = ser("keyboardButtonStyle", st)
     return body
 
 
@@ -121,11 +117,10 @@ async def send_rich(core, peer, blocks):
 
 
 async def main():
-    env = Path(ENV_PATH).read_text()
-    api_id = int(re.search(r"TELEGRAM_API_ID=(\d+)", env).group(1))
-    api_hash = re.search(r"TELEGRAM_API_HASH=([0-9a-f]+)", env).group(1)
-    tok = Path("/home/forget/TL-tests/GoyGram/.env").read_text()
-    token = re.search(r"BOT_TOKEN=(\S+)", tok).group(1)
+    env = Path(os.environ.get("CREDS_ENV", ENV_PATH)).read_text()
+    api_id = int(os.environ.get("TELEGRAM_API_ID") or re.search(r"TELEGRAM_API_ID=(\d+)", env).group(1))
+    api_hash = os.environ.get("TELEGRAM_API_HASH") or re.search(r"TELEGRAM_API_HASH=([0-9a-f]+)", env).group(1)
+    token = os.environ.get("BOT_TOKEN") or re.search(r"BOT_TOKEN=(\S+)", Path(".env").read_text()).group(1)
 
     app = GoyGram(bot_token=token, api_id=api_id, api_hash=api_hash,
                   default_transport="mtproto", session_name=SESSION)
